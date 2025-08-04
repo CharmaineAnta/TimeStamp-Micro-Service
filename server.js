@@ -1,42 +1,43 @@
-// server.js
-
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 // Enable CORS
-const cors = require('cors');
 app.use(cors({ optionsSuccessStatus: 200 }));
 
-// Serve static files (not necessary for API only)
+// Serve static files if needed
 app.use(express.static('public'));
 
-// Root route
+// Homepage route
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// Timestamp API
+// Timestamp API route
 app.get('/api/:date?', (req, res) => {
-  let dateString = req.params.date;
+  let dateInput = req.params.date;
   let date;
 
-  // If no date is provided, use current date
-  if (!dateString) {
+  // If no date provided, use current time
+  if (!dateInput) {
     date = new Date();
   } else {
-    // Check if it's a unix timestamp (number)
-    if (!isNaN(dateString)) {
-      date = new Date(parseInt(dateString));
+    // Check if dateInput is an integer (Unix timestamp)
+    if (/^\d+$/.test(dateInput)) {
+      // Convert to number and use as milliseconds
+      date = new Date(parseInt(dateInput));
     } else {
-      date = new Date(dateString);
+      // Try to parse date string
+      date = new Date(dateInput);
     }
   }
 
-  // If date is invalid
+  // If invalid date
   if (date.toString() === 'Invalid Date') {
     return res.json({ error: 'Invalid Date' });
   }
 
+  // Return JSON response
   res.json({
     unix: date.getTime(),
     utc: date.toUTCString()
